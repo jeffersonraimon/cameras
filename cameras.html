@@ -36,7 +36,7 @@
             </div>
         </header>
 
-        <!-- Grade de Câmaras (onde os botões vão aparecer) -->
+        <!-- Grade de Câmeras (onde os botões vão aparecer) -->
         <div id="camera-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             <!-- O conteúdo será gerado pelo JavaScript aqui -->
         </div>
@@ -90,7 +90,7 @@
     </div>
 
     <script>
-        // Lista inicial de câmaras (mantida na memória da página)
+        // Lista inicial de Câmeras (mantida na memória da página)
         let defaultCameras = [
             { id: 1, name: 'Câmera do Portão', url: 'http://192.168.1.100' },
             { id: 2, name: 'Câmera da Garagem', url: 'http://192.168.1.101' },
@@ -118,7 +118,7 @@
             localStorage.setItem('minhas_camaras_v1', JSON.stringify(cameras));
         }
 
-        // Função para desenhar as câmaras no ecrã
+        // Função para desenhar as Câmeras no ecrã
         function renderCameras() {
             const grid = document.getElementById('camera-grid');
             let html = '';
