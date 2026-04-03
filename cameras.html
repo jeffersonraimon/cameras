@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Câmeras</title>
+    <!-- Carrega o Tailwind CSS para o visual -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-slate-50 text-slate-800 font-sans p-4 sm:p-8">
+
+    <div class="max-w-5xl mx-auto">
+        <!-- Cabeçalho -->
+        <header class="mb-8 text-center sm:text-left flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl sm:text-4xl font-bold text-slate-800 flex items-center justify-center sm:justify-start gap-3">
+                    <!-- Ícone de Vídeo -->
+                    <svg class="text-blue-600 w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                    Minhas Câmaras
+                </h1>
+                <p class="text-slate-500 mt-2 text-lg">Clique numa camera para abri-la.</p>
+            </div>
+            
+            <div class="flex gap-3 mt-4 sm:mt-0">
+                <button onclick="exportBackup()" class="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition-colors" title="Guardar um arquivo com as suas câmeras">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Fazer Backup
+                </button>
+                <button onclick="document.getElementById('import-file').click()" class="flex items-center gap-2 px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-medium transition-colors" title="Recuperar câmeras de um arquivo">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                    Restaurar Backup
+                </button>
+                <input type="file" id="import-file" class="hidden" accept=".json" onchange="importBackup(event)">
+            </div>
+        </header>
+
+        <!-- Grade de Câmaras (onde os botões vão aparecer) -->
+        <div id="camera-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <!-- O conteúdo será gerado pelo JavaScript aqui -->
+        </div>
+    </div>
+
+    <!-- Modal de Adicionar Câmara (Escondido por padrão) -->
+    <div id="add-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                <h3 id="modal-title" class="text-xl font-bold text-slate-800">Nova Câmera</h3>
+                <button onclick="closeModal()" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-colors" title="Fechar">
+                    <!-- Ícone de X -->
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <form id="add-camera-form" class="p-6 space-y-6">
+                <!-- Mensagem de erro -->
+                <div id="error-message" class="hidden p-3 bg-red-100 text-red-700 rounded-lg text-sm font-medium"></div>
+
+                <div>
+                    <label for="camName" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Nome da Câmera
+                    </label>
+                    <input id="camName" type="text" placeholder="Ex: Quintal, Cozinha..." class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow text-lg" required>
+                </div>
+
+                <div>
+                    <label for="camUrl" class="block text-sm font-semibold text-slate-700 mb-2">
+                        Endereço IP (Número da câmera)
+                    </label>
+                    <input id="camUrl" type="text" placeholder="Ex: 192.168.1.150" class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-shadow text-lg font-mono" required>
+                    <p class="text-slate-500 text-sm mt-2">
+                        Digite apenas os números, o "http://" será adicionado automaticamente.
+                    </p>
+                </div>
+
+                <div class="pt-2">
+                    <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-xl text-lg transition-colors flex justify-center items-center gap-2">
+                        <!-- Ícone de Plus -->
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                        </svg>
+                        <span id="submit-btn-text">Guardar Câmera</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Lista inicial de câmaras (mantida na memória da página)
+        let defaultCameras = [
+            { id: 1, name: 'Câmera do Portão', url: 'http://192.168.1.100' },
+            { id: 2, name: 'Câmera da Garagem', url: 'http://192.168.1.101' },
+        ];
+
+        let cameras = [];
+        let editingId = null; // Variável para controlar qual câmara está a ser editada
+
+        // Carrega do armazenamento do navegador ou usa os padrões
+        function loadCameras() {
+            const saved = localStorage.getItem('minhas_camaras_v1');
+            if (saved) {
+                try {
+                    cameras = JSON.parse(saved);
+                } catch(e) {
+                    cameras = defaultCameras;
+                }
+            } else {
+                cameras = defaultCameras;
+            }
+        }
+
+        // Guarda as câmeras no armazenamento local do navegador
+        function saveCameras() {
+            localStorage.setItem('minhas_camaras_v1', JSON.stringify(cameras));
+        }
+
+        // Função para desenhar as câmaras no ecrã
+        function renderCameras() {
+            const grid = document.getElementById('camera-grid');
+            let html = '';
+
+            // Cria um cartão para cada câmara na lista
+            cameras.forEach(cam => {
+                html += `
+                <div class="relative group bg-white rounded-2xl shadow-sm border border-slate-200 hover:shadow-lg hover:border-blue-300 transition-all duration-200 overflow-hidden">
+                    <!-- Botão principal gigante -->
+                    <button onclick="window.open('${cam.url}', '_blank', 'noopener,noreferrer')" class="w-full p-8 flex flex-col items-center justify-center text-center focus:outline-none focus:ring-4 focus:ring-blue-500/50" title="Aceder a ${cam.name}">
+                        <div class="w-20 h-20 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                            <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                            </svg>
+                        </div>
+                        <h2 class="text-2xl font-semibold text-slate-700">${cam.name}</h2>
+                        <span class="text-slate-400 mt-2 flex items-center gap-1 text-sm">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+                            </svg>
+                            Abrir ao vivo
+                        </span>
+                    </button>
+
+                    <!-- Botões de Ação -->
+                    <div class="absolute top-3 right-3 flex gap-2">
+                        <!-- Botão de Editar -->
+                        <button onclick="openModal(${cam.id})" class="p-2 text-slate-300 hover:text-blue-500 hover:bg-blue-50 rounded-full transition-colors" title="Editar câmara">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
+                            </svg>
+                        </button>
+
+                        <!-- Botão de Remover -->
+                        <button onclick="deleteCamera(${cam.id})" class="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors" title="Remover câmara">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+                `;
+            });
+
+            // Adiciona o botão de "Adicionar Nova" no final da grade
+            html += `
+            <button onclick="openModal()" class="w-full min-h-[250px] p-8 border-2 border-dashed border-slate-300 rounded-2xl text-slate-500 hover:text-blue-600 hover:border-blue-400 hover:bg-blue-50 flex flex-col items-center justify-center transition-all duration-200">
+                <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                    </svg>
+                </div>
+                <h2 class="text-xl font-medium">Adicionar Nova</h2>
+            </button>
+            `;
+
+            grid.innerHTML = html;
+        }
+
+        // Função para remover câmara
+        function deleteCamera(id) {
+            if (confirm('Tem certeza que deseja remover esta câmera?')) {
+                cameras = cameras.filter(cam => cam.id !== id);
+                saveCameras(); // Salva a alteração
+                renderCameras();
+            }
+        }
+
+        // Funções para gerir o Modal
+        function openModal(id = null) {
+            editingId = id;
+            const modalTitle = document.getElementById('modal-title');
+            const submitText = document.getElementById('submit-btn-text');
+            const nameInput = document.getElementById('camName');
+            const urlInput = document.getElementById('camUrl');
+            const errorDiv = document.getElementById('error-message');
+
+            errorDiv.classList.add('hidden');
+
+            if (id) {
+                // Modo Edição
+                const cam = cameras.find(c => c.id === id);
+                if (cam) {
+                    modalTitle.textContent = 'Editar Câmara';
+                    submitText.textContent = 'Atualizar Câmara';
+                    nameInput.value = cam.name;
+                    urlInput.value = cam.url;
+                }
+            } else {
+                // Modo Adição
+                modalTitle.textContent = 'Nova Câmara';
+                submitText.textContent = 'Guardar Câmara';
+                document.getElementById('add-camera-form').reset();
+            }
+
+            document.getElementById('add-modal').classList.remove('hidden');
+            nameInput.focus();
+        }
+
+        function closeModal() {
+            document.getElementById('add-modal').classList.add('hidden');
+            document.getElementById('add-camera-form').reset();
+            document.getElementById('error-message').classList.add('hidden');
+            editingId = null;
+        }
+
+        // Lidar com o envio do formulário
+        document.getElementById('add-camera-form').addEventListener('submit', function(e) {
+            e.preventDefault(); // Evita recarregar a página
+
+            const nameInput = document.getElementById('camName').value.trim();
+            const urlInput = document.getElementById('camUrl').value.trim();
+            const errorDiv = document.getElementById('error-message');
+
+            if (!nameInput || !urlInput) {
+                errorDiv.textContent = 'Por favor, preencha o nome e o IP da câmara.';
+                errorDiv.classList.remove('hidden');
+                return;
+            }
+
+            // Garante que o link comece com http://
+            let finalUrl = urlInput;
+            if (!finalUrl.startsWith('http://') && !finalUrl.startsWith('https://')) {
+                finalUrl = 'http://' + finalUrl;
+            }
+
+            if (editingId) {
+                // Atualiza a câmara existente
+                cameras = cameras.map(cam => {
+                    if (cam.id === editingId) {
+                        return { ...cam, name: nameInput, url: finalUrl };
+                    }
+                    return cam;
+                });
+            } else {
+                // Adiciona à lista
+                cameras.push({
+                    id: Date.now(),
+                    name: nameInput,
+                    url: finalUrl
+                });
+            }
+
+            // Guarda as alterações, atualiza a vista e fecha
+            saveCameras();
+            renderCameras();
+            closeModal();
+        });
+
+        // Funções de Backup
+        function exportBackup() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(cameras, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "meu_backup_de_cameras.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importBackup(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedCameras = JSON.parse(e.target.result);
+                    if (Array.isArray(importedCameras)) {
+                        cameras = importedCameras;
+                        saveCameras(); // Salva no LocalStorage
+                        renderCameras(); // Atualiza a tela
+                        alert('Backup restaurado com sucesso! A tela foi atualizada com suas câmeras.');
+                    } else {
+                        alert('Arquivo inválido. Por favor, escolha um arquivo de backup correto.');
+                    }
+                } catch (error) {
+                    alert('Erro ao ler o arquivo de backup.');
+                }
+                // Limpa o input de arquivo para permitir importar o mesmo ficheiro novamente se necessário
+                event.target.value = '';
+            };
+            reader.readAsText(file);
+        }
+
+        // Inicializa a aplicação ao carregar a página
+        loadCameras();
+        renderCameras();
+    </script>
+</body>
+</html>
