@@ -203,15 +203,15 @@
                 // Modo Edição
                 const cam = cameras.find(c => c.id === id);
                 if (cam) {
-                    modalTitle.textContent = 'Editar Câmara';
-                    submitText.textContent = 'Atualizar Câmara';
+                    modalTitle.textContent = 'Editar Câmera';
+                    submitText.textContent = 'Atualizar Câmera';
                     nameInput.value = cam.name;
                     urlInput.value = cam.url;
                 }
             } else {
                 // Modo Adição
-                modalTitle.textContent = 'Nova Câmara';
-                submitText.textContent = 'Guardar Câmara';
+                modalTitle.textContent = 'Nova Câmera';
+                submitText.textContent = 'Guardar Câmera';
                 document.getElementById('add-camera-form').reset();
             }
 
